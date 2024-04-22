@@ -19,8 +19,8 @@ struct TaskListView: View {
                     ForEach(taskStore.tasks) { task in
                         TaskRowView(task: task, onToggleCompletion: toggleTaskCompletion)
                     }
-                    .onMove(perform: taskStore.moveTask)
                     .onDelete(perform: deleteTask)
+                    .onMove(perform: move)
                 }
                 .listStyle(PlainListStyle())
                 
@@ -33,9 +33,6 @@ struct TaskListView: View {
                 .padding()
             }
             .navigationTitle("Tasks")
-            .toolbar {
-                EditButton()
-            }
         }
     }
     
@@ -57,5 +54,9 @@ struct TaskListView: View {
         var updatedTask = task
         updatedTask.isCompleted.toggle()
         taskStore.updateTask(updatedTask)
+    }
+    
+    private func move(from source: IndexSet, to destination: Int) {
+        taskStore.tasks.move(fromOffsets: source, toOffset: destination)
     }
 }
