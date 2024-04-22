@@ -40,25 +40,29 @@ struct TaskWidgetEntryView : View {
     var entry: Provider.Entry
 
     var body: some View {
-        if entry.tasks.isEmpty {
-            Text("Great! You finish them all!")
-                .padding()
-        } else {
-            let firstTask = entry.tasks[0]
-            VStack {
-                Text(firstTask.title)
-                    .font(.headline)
-                Button(action: {
-                    completeTask(firstTask)
-                    WidgetCenter.shared.reloadTimelines(ofKind: "TaskWidget")
-                }) {
-                    Text("Complete")
-                        .foregroundColor(.blue)
+        VStack {
+            if entry.tasks.isEmpty {
+                Text("Great! You finish them all!")
+                    .padding()
+            } else {
+                let firstTask = entry.tasks[0]
+                HStack {
+                    Text(firstTask.title)
+                        .font(.headline)
+                    Spacer()
+                    Button(action: {
+                        completeTask(firstTask)
+                        WidgetCenter.shared.reloadTimelines(ofKind: "TaskWidget")
+                    }) {
+                        Image(systemName: "checkmark")
+                            .foregroundColor(.green)
+                    }
                 }
+                .padding()
             }
-            .padding()
         }
-    }
+        .background(Color.white)
+        }
 
     func completeTask(_ task: Task) {
         if let data = UserDefaults(suiteName: "group.com.xd.Focus")?.data(forKey: "tasks"),
@@ -78,7 +82,6 @@ struct TaskWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: Provider()) { entry in
             TaskWidgetEntryView(entry: entry)
-                .containerBackground(.fill.tertiary, for: .widget)
         }
         .configurationDisplayName("Task Widget")
         .description("Display your first task and mark it as complete.")
