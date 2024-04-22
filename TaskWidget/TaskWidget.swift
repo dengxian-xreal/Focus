@@ -59,36 +59,39 @@ struct TaskWidgetEntryView : View {
     var entry: Provider.Entry
 
     var body: some View {
-        VStack {
-            if entry.tasks.allSatisfy({ $0.isCompleted }) {
-                Text("Great! You finish them all!")
-                    .padding()
-            } else {
-                let firstTask = entry.tasks[0]
-                HStack {
-                    Text(firstTask.title)
-                        .font(.headline)
-                    Spacer()
-                    CompleteButtonView(isCompleted: firstTask.isCompleted) {
-                        completeTask(firstTask)
-                        WidgetCenter.shared.reloadTimelines(ofKind: "TaskWidget")
+            VStack {
+                if entry.tasks.allSatisfy({ $0.isCompleted }) {
+                    Text("Great! You finish them all!")
+                        .padding()
+                } else if let firstUncompletedTask = entry.tasks.first(where: { !$0.isCompleted }) {
+                    HStack {
+                        Text(firstUncompletedTask.title)
+                            .font(.headline)
+                        Spacer()
+                        CompleteButtonView(isCompleted: firstUncompletedTask.isCompleted) {
+                            completeTask(firstUncompletedTask)
+                            WidgetCenter.shared.reloadTimelines(ofKind: "TaskWidget")
+                        }
                     }
+                    .padding()
+                } else {
+                    Text("No uncompleted tasks")
+                        .padding()
                 }
-                .padding()
+            }
+            .background(Color.white)
+        }
+        
+        func completeTask(_ task: Task) {
+            if let data = UserDefaults(suiteName: "group.com.xd.Focus")?.data(forKey: "tasks"),
+               var tasks = try? JSONDecoder().decode([Task].self, from: data),
+               let index = tasks.firstIndex(where: { $0.id == task.id }) {
+                tasks[index].isCompleted = true
+                if let updatedData = try? JSONEncoder().encode(tasks) {
+                    UserDefaults(suiteName: "group.com.xd.Focus")?.set(updatedData, forKey: "tasks")
+                }
             }
         }
-        .background(Color.white)
-    }
-    func completeTask(_ task: Task) {
-        if let data = UserDefaults(suiteName: "group.com.xd.Focus")?.data(forKey: "tasks"),
-           var tasks = try? JSONDecoder().decode([Task].self, from: data),
-           let index = tasks.firstIndex(where: { $0.id == task.id }) {
-            tasks[index].isCompleted = true
-            if let updatedData = try? JSONEncoder().encode(tasks) {
-                UserDefaults(suiteName: "group.com.xd.Focus")?.set(updatedData, forKey: "tasks")
-            }
-        }
-    }
 }
 
 struct TaskWidget: Widget {

@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import WidgetKit
 
 struct TaskListView: View {
     @StateObject private var taskStore = TaskStore()
@@ -54,22 +55,27 @@ struct TaskListView: View {
         let newTask = Task(title: newTaskTitle, order: taskStore.tasks.count)
         taskStore.addTask(newTask)
         newTaskTitle = ""
+        WidgetCenter.shared.reloadTimelines(ofKind: "TaskWidget")
     }
     
     private func deleteTask(at offsets: IndexSet) {
         offsets.forEach { index in
             let task = taskStore.tasks[index]
             taskStore.deleteTask(task)
+            WidgetCenter.shared.reloadTimelines(ofKind: "TaskWidget")
         }
+        
     }
     
     private func toggleTaskCompletion(_ task: Task) {
         var updatedTask = task
         updatedTask.isCompleted.toggle()
         taskStore.updateTask(updatedTask)
+        WidgetCenter.shared.reloadTimelines(ofKind: "TaskWidget")
     }
     
     private func move(from source: IndexSet, to destination: Int) {
         taskStore.tasks.move(fromOffsets: source, toOffset: destination)
+        WidgetCenter.shared.reloadTimelines(ofKind: "TaskWidget")
     }
 }
