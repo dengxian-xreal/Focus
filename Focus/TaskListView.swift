@@ -23,7 +23,9 @@ struct TaskListView: View {
                         ForEach(uncompletedTasks) { task in
                             TaskRowView(task: task, onToggleCompletion: toggleTaskCompletion)
                         }
-                        .onDelete(perform: deleteTask)
+                        .onDelete { indexSet in
+                            deleteTask(at: indexSet, inCompleted: false)
+                        }
                         .onMove(perform: move)
                         
                         if !completedTasks.isEmpty {
@@ -31,7 +33,9 @@ struct TaskListView: View {
                                 ForEach(completedTasks) { task in
                                     TaskRowView(task: task, onToggleCompletion: toggleTaskCompletion)
                                 }
-                                .onDelete(perform: deleteTask)
+                                .onDelete { indexSet in
+                                    deleteTask(at: indexSet, inCompleted: true)
+                                }
                                 .onMove(perform: move)
                             }
                         }
@@ -58,13 +62,13 @@ struct TaskListView: View {
         WidgetCenter.shared.reloadTimelines(ofKind: "TaskWidget")
     }
     
-    private func deleteTask(at offsets: IndexSet) {
+    private func deleteTask(at offsets: IndexSet, inCompleted: Bool) {
+        let tasksToDelete = inCompleted ? taskStore.tasks.filter { $0.isCompleted } : taskStore.tasks.filter { !$0.isCompleted }
         offsets.forEach { index in
-            let task = taskStore.tasks[index]
+            let task = tasksToDelete[index]
             taskStore.deleteTask(task)
-            WidgetCenter.shared.reloadTimelines(ofKind: "TaskWidget")
         }
-        
+        WidgetCenter.shared.reloadTimelines(ofKind: "TaskWidget")
     }
     
     private func toggleTaskCompletion(_ task: Task) {
