@@ -36,6 +36,25 @@ struct SimpleEntry: TimelineEntry {
     let tasks: [Task]
 }
 
+struct CompleteButtonView: View {
+    var isCompleted: Bool
+    var action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            Circle()
+                .stroke(Color.green, lineWidth: 2)
+                .background(isCompleted ? Color.green : Color.white)
+                .frame(width: 30, height: 30)
+                .overlay(
+                    Image(systemName: "checkmark")
+                        .foregroundColor(isCompleted ? .white : .clear)
+                )
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+}
+
 struct TaskWidgetEntryView : View {
     var entry: Provider.Entry
 
@@ -50,20 +69,16 @@ struct TaskWidgetEntryView : View {
                     Text(firstTask.title)
                         .font(.headline)
                     Spacer()
-                    Button(action: {
+                    CompleteButtonView(isCompleted: firstTask.isCompleted) {
                         completeTask(firstTask)
                         WidgetCenter.shared.reloadTimelines(ofKind: "TaskWidget")
-                    }) {
-                        Image(systemName: "checkmark")
-                            .foregroundColor(.green)
                     }
                 }
                 .padding()
             }
         }
         .background(Color.white)
-        }
-
+    }
     func completeTask(_ task: Task) {
         if let data = UserDefaults(suiteName: "group.com.xd.Focus")?.data(forKey: "tasks"),
            var tasks = try? JSONDecoder().decode([Task].self, from: data),
