@@ -10,31 +10,44 @@ import SwiftUI
 
 struct TaskListView: View {
     @StateObject private var taskStore = TaskStore()
-    @State private var newTaskTitle = ""
-    
-    var body: some View {
-        NavigationView {
-            VStack {
-                List {
-                    ForEach(taskStore.tasks) { task in
-                        TaskRowView(task: task, onToggleCompletion: toggleTaskCompletion)
+        @State private var newTaskTitle = ""
+        
+        var body: some View {
+            NavigationView {
+                VStack {
+                    List {
+                        let uncompletedTasks = taskStore.tasks.filter { !$0.isCompleted }
+                        let completedTasks = taskStore.tasks.filter { $0.isCompleted }
+                        
+                        ForEach(uncompletedTasks) { task in
+                            TaskRowView(task: task, onToggleCompletion: toggleTaskCompletion)
+                        }
+                        .onDelete(perform: deleteTask)
+                        .onMove(perform: move)
+                        
+                        if !completedTasks.isEmpty {
+                            Section(header: Text("Completed Tasks")) {
+                                ForEach(completedTasks) { task in
+                                    TaskRowView(task: task, onToggleCompletion: toggleTaskCompletion)
+                                }
+                                .onDelete(perform: deleteTask)
+                                .onMove(perform: move)
+                            }
+                        }
                     }
-                    .onDelete(perform: deleteTask)
-                    .onMove(perform: move)
-                }
-                .listStyle(PlainListStyle())
-                
-                HStack {
-                    TextField("New Task", text: $newTaskTitle)
-                    Button(action: addTask) {
-                        Text("Add")
+                    .listStyle(PlainListStyle())
+                    
+                    HStack {
+                        TextField("New Task", text: $newTaskTitle)
+                        Button(action: addTask) {
+                            Text("Add")
+                        }
                     }
+                    .padding()
                 }
-                .padding()
+                .navigationTitle("Tasks")
             }
-            .navigationTitle("Tasks")
         }
-    }
     
     private func addTask() {
         guard !newTaskTitle.isEmpty else { return }
