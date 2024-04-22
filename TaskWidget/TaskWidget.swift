@@ -7,16 +7,27 @@ struct Provider: TimelineProvider {
     }
 
     func getSnapshot(in context: Context, completion: @escaping (SimpleEntry) -> ()) {
-        let tasks = TaskStore.shared.tasks
-        let entry = SimpleEntry(date: Date(), tasks: tasks)
-        completion(entry)
+        if let data = UserDefaults(suiteName: "group.com.xd.Focus")?.data(forKey: "tasks"),
+           let tasks = try? JSONDecoder().decode([Task].self, from: data) {
+            let entry = SimpleEntry(date: Date(), tasks: tasks)
+            completion(entry)
+        } else {
+            let entry = SimpleEntry(date: Date(), tasks: [])
+            completion(entry)
+        }
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<SimpleEntry>) -> ()) {
-        let tasks = TaskStore.shared.tasks
-        let entry = SimpleEntry(date: Date(), tasks: tasks)
-        let timeline = Timeline(entries: [entry], policy: .atEnd)
-        completion(timeline)
+        if let data = UserDefaults(suiteName: "group.com.xd.Focus")?.data(forKey: "tasks"),
+           let tasks = try? JSONDecoder().decode([Task].self, from: data) {
+            let entry = SimpleEntry(date: Date(), tasks: tasks)
+            let timeline = Timeline(entries: [entry], policy: .atEnd)
+            completion(timeline)
+        } else {
+            let entry = SimpleEntry(date: Date(), tasks: [])
+            let timeline = Timeline(entries: [entry], policy: .atEnd)
+            completion(timeline)
+        }
     }
 }
 
@@ -38,7 +49,7 @@ struct TaskWidgetEntryView : View {
                 Text(firstTask.title)
                     .font(.headline)
                 Button(action: {
-                    TaskStore.shared.completeTask(firstTask)
+                    completeTask(firstTask)
                     WidgetCenter.shared.reloadTimelines(ofKind: "TaskWidget")
                 }) {
                     Text("Complete")
@@ -46,6 +57,17 @@ struct TaskWidgetEntryView : View {
                 }
             }
             .padding()
+        }
+    }
+
+    func completeTask(_ task: Task) {
+        if let data = UserDefaults(suiteName: "group.com.xd.Focus")?.data(forKey: "tasks"),
+           var tasks = try? JSONDecoder().decode([Task].self, from: data),
+           let index = tasks.firstIndex(where: { $0.id == task.id }) {
+            tasks[index].isCompleted = true
+            if let updatedData = try? JSONEncoder().encode(tasks) {
+                UserDefaults(suiteName: "group.com.xd.Focus")?.set(updatedData, forKey: "tasks")
+            }
         }
     }
 }
