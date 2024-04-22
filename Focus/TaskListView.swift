@@ -26,7 +26,9 @@ struct TaskListView: View {
                         .onDelete { indexSet in
                             deleteTask(at: indexSet, inCompleted: false)
                         }
-                        .onMove(perform: move)
+                        .onMove { source, destination in
+                            move(from: source, to: destination, inCompleted: false)
+                        }
                         
                         if !completedTasks.isEmpty {
                             Section(header: Text("Completed Tasks")) {
@@ -36,7 +38,9 @@ struct TaskListView: View {
                                 .onDelete { indexSet in
                                     deleteTask(at: indexSet, inCompleted: true)
                                 }
-                                .onMove(perform: move)
+                                .onMove { source, destination in
+                                    move(from: source, to: destination, inCompleted: true)
+                                }
                             }
                         }
                     }
@@ -78,8 +82,19 @@ struct TaskListView: View {
         WidgetCenter.shared.reloadTimelines(ofKind: "TaskWidget")
     }
     
-    private func move(from source: IndexSet, to destination: Int) {
-        taskStore.tasks.move(fromOffsets: source, toOffset: destination)
+    private func move(from source: IndexSet, to destination: Int, inCompleted: Bool) {
+        let tasksToMove = inCompleted ? taskStore.tasks.filter { $0.isCompleted } : taskStore.tasks.filter { !$0.isCompleted }
+        let sourceTasks = source.map { tasksToMove[$0] }
+        let destinationIndex = tasksToMove.firstIndex(where: { $0.id == tasksToMove[destination].id })!
+
+        for task in sourceTasks {
+            if let index = taskStore.tasks.firstIndex(where: { $0.id == task.id }) {
+                taskStore.tasks.remove(at: index)
+                taskStore.tasks.insert(task, at: taskStore.tasks.firstIndex(where: { $0.id == tasksToMove[destinationIndex].id }) ?? 0)
+            }
+        }
+
+        taskStore.updateTasksOrder()
         WidgetCenter.shared.reloadTimelines(ofKind: "TaskWidget")
     }
 }

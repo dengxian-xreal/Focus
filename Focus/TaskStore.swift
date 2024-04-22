@@ -48,7 +48,7 @@ class TaskStore: ObservableObject {
         WidgetCenter.shared.reloadTimelines(ofKind: "TaskWidget")
     }
     
-    private func updateTasksOrder() {
+    func updateTasksOrder() {
         for i in 0..<tasks.count {
             tasks[i].order = i
         }
