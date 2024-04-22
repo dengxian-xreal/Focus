@@ -14,13 +14,13 @@ struct TaskRowView: View {
     
     var body: some View {
         HStack {
-            Text(task.title)
-            Spacer()
             Button(action: {
                 onToggleCompletion(task)
             }) {
                 Image(systemName: task.isCompleted ? "checkmark.circle.fill" : "circle")
             }
+            Text(task.title)
+            Spacer()
         }
     }
 }
