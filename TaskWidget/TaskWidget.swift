@@ -60,7 +60,7 @@ struct TaskWidgetEntryView : View {
 
     var body: some View {
         VStack {
-            if entry.tasks.isEmpty {
+            if entry.tasks.allSatisfy({ $0.isCompleted }) {
                 Text("Great! You finish them all!")
                     .padding()
             } else {
