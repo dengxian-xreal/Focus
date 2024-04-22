@@ -40,6 +40,7 @@ struct TaskListView: View {
     }
     
     private func addTask() {
+        guard !newTaskTitle.isEmpty else { return }
         let newTask = Task(title: newTaskTitle, order: taskStore.tasks.count)
         taskStore.addTask(newTask)
         newTaskTitle = ""
