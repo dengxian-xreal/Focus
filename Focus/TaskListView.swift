@@ -96,5 +96,10 @@ struct TaskListView: View {
 
         taskStore.updateTasksOrder()
         WidgetCenter.shared.reloadTimelines(ofKind: "TaskWidget")
+        
+        print("Uncompleted tasks after move (in TaskListView):")
+        for (index, task) in taskStore.tasks.enumerated() where !task.isCompleted {
+            print("Task \(index): \(task.title)")
+        }
     }
 }

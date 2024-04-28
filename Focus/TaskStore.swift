@@ -19,7 +19,7 @@ class TaskStore: ObservableObject {
             tasks = []
         }
     }
-
+    
     
     func addTask(_ task: Task) {
         tasks.append(task)
@@ -45,18 +45,30 @@ class TaskStore: ObservableObject {
         tasks.move(fromOffsets: source, toOffset: destination)
         updateTasksOrder()
         saveTasks()  // 在添加任务后立即保存
-        WidgetCenter.shared.reloadTimelines(ofKind: "TaskWidget")
+        
+       
+        print("Uncompleted tasks after move:")
+        for (index, task) in tasks.enumerated() where !task.isCompleted {
+            print("Task \(index): \(task.title)")
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            WidgetCenter.shared.reloadTimelines(ofKind: "TaskWidget")
+        }
+       
+        
     }
-    
     func updateTasksOrder() {
         for i in 0..<tasks.count {
             tasks[i].order = i
         }
+        tasks.sort { $0.order < $1.order }
     }
     
-    private func saveTasks() {
+    func saveTasks() {
         if let data = try? JSONEncoder().encode(tasks) {
             UserDefaults(suiteName: "group.com.xd.Focus")?.set(data, forKey: "tasks")
         }
+        
     }
 }
